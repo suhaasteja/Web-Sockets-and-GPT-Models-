@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket Client Interface</title>
+  </head>
+  <body>
+    <h1>WebSocket Client</h1>
+    <button onclick="startLoop()">Run 10,000 Messages</button>
+    <div
+      id="messages"
+      style="
+        height: 400px;
+        overflow-y: scroll;
+        border: 1px solid #ccc;
+        padding: 10px;
+      "
+    ></div>
+
+    <style>
+      /* Style for the entire body */
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f4f4f9;
+        color: #333;
+        margin: 0;
+        padding: 20px;
+      }
+
+      /* Main heading style */
+      h1 {
+        color: #0055a2;
+        font-size: 24px;
+        margin-bottom: 20px;
+      }
+
+      /* Style for the button */
+      button {
+        background-color: #0055a2;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+        transition: background-color 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #004080;
+      }
+
+      button:active {
+        background-color: #002851;
+      }
+
+      /* Style for the message display area */
+      #messages {
+        width: 100%;
+        max-width: 600px;
+        height: 400px;
+        overflow-y: scroll;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        padding: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+        border-radius: 5px;
+      }
+
+      /* Style for individual message items */
+      #messages p {
+        font-size: 14px;
+        margin: 5px 0;
+        padding: 8px;
+        background-color: #f1f8ff;
+        border-radius: 5px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      /* Style for odd and even messages */
+      #messages p:nth-child(odd) {
+        background-color: #e8f4ff;
+      }
+
+      #messages p:nth-child(even) {
+        background-color: #d9ecff;
+      }
+    </style>
+    <script>
+      let ws;
+      let messageCount = 0;
+
+      function connectWebSocket() {
+        ws = new WebSocket("ws://localhost:8765");
+
+        ws.onopen = function () {
+          console.log("Connected to WebSocket");
+        };
+
+        ws.onmessage = function (event) {
+          const messagesDiv = document.getElementById("messages");
+          const messageElement = document.createElement("p");
+          messageElement.textContent = "Received: " + event.data;
+          messagesDiv.appendChild(messageElement);
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+          messageCount++;
+          if (messageCount < 10000) {
+            ws.send(`Request [${messageCount}] from client!`);
+          } else {
+            console.log("Completed 10,000 messages.");
+            ws.close();
+          }
+        };
+
+        ws.onclose = function () {
+          console.log("WebSocket connection closed");
+        };
+
+        ws.onerror = function (error) {
+          console.error("WebSocket Error: ", error);
+        };
+      }
+
+      function startLoop() {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          console.log("WebSocket connection is not open.");
+          return;
+        }
+        ws.send("Client initiates the loop");
+      }
+
+      window.onload = connectWebSocket;
+    </script>
+  </body>
+</html>
